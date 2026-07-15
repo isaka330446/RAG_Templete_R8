@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>仕様書 04 管理者アプリ</title>
+  <style>
+    body{font-family:"Segoe UI",system-ui,sans-serif;background:#f7f8fb;color:#172033;margin:0;line-height:1.75}
+    main{max-width:1100px;margin:0 auto;padding:42px 24px} h1{font-size:34px;margin:0 0 8px}
+    h2{margin-top:32px;border-bottom:1px solid #d9deea;padding-bottom:8px}
+    section{background:#fff;border:1px solid #e5e8f0;border-radius:16px;padding:20px;margin:18px 0;box-shadow:0 12px 40px rgba(15,23,42,.08)}
+    code{background:#eef2ff;border-radius:6px;padding:2px 6px} li{margin:6px 0}
+    table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #edf0f6;padding:10px;text-align:left;vertical-align:top} th{color:#305cff}
+  </style>
+</head>
+<body><main>
+  <h1>仕様書 04: 管理者アプリ</h1>
+  <p>管理者アプリはFastHTMLのRAG改善コンソールです。実装本体は <code>app_fasthtml_admin_common/core.py</code>、起動口は <code>app_fasthtml_admin_common/main.py</code> です。</p>
+
+  <section>
+    <h2>起動</h2>
+    <pre><code>python -m app_fasthtml_admin_common.main</code></pre>
+    <p>host/portは <code>config/settings.json</code> の <code>urls.admin_bind_host</code> / <code>urls.admin_bind_port</code> を使います。RAG API base URLは <code>urls.rag_api_base_url</code> から取得し、画面内で持ち回りません。</p>
+  </section>
+
+  <section>
+    <h2>6画面構成</h2>
+    <table>
+      <thead><tr><th>画面</th><th>目的</th></tr></thead>
+      <tbody>
+        <tr><td>ダッシュボード</td><td>質問数、根拠なし率、低信頼率、未対応報告、QAヒット率、Index警告を確認。</td></tr>
+        <tr><td>改善キュー</td><td>報告、根拠なし、低信頼、惜しいキャッシュミス、alias未生成QAなどを優先度順に表示。</td></tr>
+        <tr><td>報告対応</td><td>ユーザー報告、回答時根拠、原因分類、対応方法、管理メモを扱う。</td></tr>
+        <tr><td>承認QA</td><td>QA一覧、作成、編集、無効化、根拠検索、類似QA、alias管理、match-debug。</td></tr>
+        <tr><td>ログ探索</td><td>質問ログ、回答元、cache miss理由、候補QA、根拠数、最大スコアを探索。</td></tr>
+        <tr><td>文書/評価</td><td>chunk/index/SearchTag/chunk_report/eval状態を確認。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>承認QA編集</h2>
+    <ul>
+      <li>QA一覧は1カラムで広く表示する。</li>
+      <li>詳細・編集は大きめモーダルで表示する。</li>
+      <li>モーダル内で質問、回答、根拠JSON、version、memo、alias一覧、alias追加/更新/無効化、LLM alias生成を扱う。</li>
+      <li>disabled aliasは行全体をグレーアウトし、有効/無効が一目で分かるようにする。</li>
+      <li>LLM生成aliasは基本的に保存し、不要なものは管理者が無効化する。競合aliasは安全側でdisabled保存する。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>SearchTagの扱い</h2>
+    <ul>
+      <li>SearchTagは補助機能として残す。</li>
+      <li>管理画面の主導線では、QA alias追加、承認QA化、文書不足確認を優先する。</li>
+      <li>表示や候補出しは <code>search_tags.admin_edit_enabled</code> と <code>search_tags.show_improvement_candidates</code> で制御する。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>認証</h2>
+    <p>現行スコープでは認証・認可は実装しません。ネットワークや端末側の運用制御で扱います。</p>
+  </section>
+</main></body></html>

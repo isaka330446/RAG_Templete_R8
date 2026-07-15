@@ -1,0 +1,11 @@
+# Evaluation dependencies are optional and intentionally kept out of production requirements.
+# The developer evaluation UI is FastHTML-based; install requirements_fasthtml.txt for the UI runtime.
+# After confirming versions on the target evaluation PC, pin them with:
+# pip freeze | findstr /i "ragas deepeval datasets langchain-openai langchain-community openai" > requirements_eval.lock.txt
+ragas
+openai
+datasets
+langchain-openai
+langchain-community
+deepeval
+httpx

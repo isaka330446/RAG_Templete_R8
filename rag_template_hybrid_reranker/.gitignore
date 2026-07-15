@@ -1,0 +1,15 @@
+.env
+config/settings.json
+.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+chunks/*.jsonl
+indexes/chroma/*
+!indexes/chroma/.gitkeep
+
+logs/*
+!logs/.gitkeep
+
+eval/eval_results.csv

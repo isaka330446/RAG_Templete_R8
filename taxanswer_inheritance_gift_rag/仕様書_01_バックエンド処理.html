@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>仕様書 01 バックエンド処理</title>
+  <style>
+    body{font-family:"Segoe UI",system-ui,sans-serif;background:#f7f8fb;color:#172033;margin:0;line-height:1.75}
+    main{max-width:1100px;margin:0 auto;padding:42px 24px} h1{font-size:34px;margin:0 0 8px}
+    h2{margin-top:32px;border-bottom:1px solid #d9deea;padding-bottom:8px}
+    section{background:#fff;border:1px solid #e5e8f0;border-radius:16px;padding:20px;margin:18px 0;box-shadow:0 12px 40px rgba(15,23,42,.08)}
+    code{background:#eef2ff;border-radius:6px;padding:2px 6px} li{margin:6px 0}
+    table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #edf0f6;padding:10px;text-align:left;vertical-align:top} th{color:#305cff}
+  </style>
+</head>
+<body><main>
+  <h1>仕様書 01: バックエンド処理</h1>
+  <p>RAG API、検索、生成、承認済みQAキャッシュ、ログ保存、管理APIの処理仕様です。</p>
+
+  <section>
+    <h2>主要モジュール</h2>
+    <table>
+      <thead><tr><th>ファイル</th><th>責務</th></tr></thead>
+      <tbody>
+        <tr><td><code>api/main.py</code></td><td>FastAPIアプリ、ユーザーAPI、管理API、health、eval/status。</td></tr>
+        <tr><td><code>api/rag_engine.py</code></td><td>質問受付、承認QAキャッシュ照合、通常RAG検索、生成、ログ保存。</td></tr>
+        <tr><td><code>api/retriever.py</code></td><td>Dense/BM25/Reranker検索。SearchTag利用は設定で切替。</td></tr>
+        <tr><td><code>api/llm_client.py</code></td><td>OpenAI互換ローカルLLM、Embeddingクライアント。</td></tr>
+        <tr><td><code>api/answer_cache.py</code></td><td>承認済みQA、alias、hallucination report、in-memory alias index。</td></tr>
+        <tr><td><code>api/logging_store.py</code></td><td>チャットログSQLite、ログ検索、管理集計。</td></tr>
+        <tr><td><code>api/config.py</code></td><td>設定読み込み、URL取得ヘルパー、プロジェクトパス解決。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>質問処理フロー</h2>
+    <ol>
+      <li>ユーザー質問を <code>/ask</code> または <code>/ask_events</code> で受け取る。</li>
+      <li>承認済みQAキャッシュ照合では raw question を優先する。</li>
+      <li>normalized exact match、alias embedding検索、必要時のみgray候補のLLM同一意図判定を行う。</li>
+      <li>QAキャッシュhit時は親の <code>approved_qa.answer</code> と evidence を返す。</li>
+      <li>miss時は通常RAG検索に進む。検索クエリは履歴を考慮した <code>retrieval_query</code> を使う。</li>
+      <li>根拠chunkをrerankし、回答生成LLMへ渡す。</li>
+      <li>回答、根拠、debug、cache miss理由、latencyをログDBへ保存する。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>承認済みQA alias検索</h2>
+    <ul>
+      <li><code>approved_qa</code> は回答本体、<code>approved_qa_aliases</code> は検索入口。</li>
+      <li>aliasは <code>original</code>、<code>admin_alias</code>、<code>llm_paraphrase</code> を扱う。</li>
+      <li>alias追加、更新、無効化後はin-memory indexをreloadする。</li>
+      <li>同じ正規化aliasが別QAに競合する場合は、通常操作ではactive保存せずdisabled保存する。</li>
+      <li>正式質問、回答、根拠を編集した場合、古いLLM aliasは安全側でdisabled化する。</li>
+      <li>alias生成には通常回答LLMではなく、設定上のalias/eval系LLM接続先を使う。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>ログ</h2>
+    <ul>
+      <li>本番標準ではログSQLiteは必須。初期化や起動時書き込みチェックに失敗した場合、APIは起動しない。</li>
+      <li>ログに保存するsourcesは軽量化し、全文ではなくpreviewとメタデータを保存する。</li>
+      <li><code>latency_ms</code>、<code>error_type</code>、cache candidate情報を保存し、管理画面で改善に使う。</li>
+    </ul>
+  </section>
+</main></body></html>

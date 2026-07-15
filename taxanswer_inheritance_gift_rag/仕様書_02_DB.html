@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>仕様書 02 DB</title>
+  <style>
+    body{font-family:"Segoe UI",system-ui,sans-serif;background:#f7f8fb;color:#172033;margin:0;line-height:1.75}
+    main{max-width:1100px;margin:0 auto;padding:42px 24px} h1{font-size:34px;margin:0 0 8px}
+    h2{margin-top:32px;border-bottom:1px solid #d9deea;padding-bottom:8px}
+    section{background:#fff;border:1px solid #e5e8f0;border-radius:16px;padding:20px;margin:18px 0;box-shadow:0 12px 40px rgba(15,23,42,.08)}
+    code,pre{background:#eef2ff;border-radius:6px;padding:2px 6px} pre{padding:14px;overflow:auto}
+    table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #edf0f6;padding:10px;text-align:left;vertical-align:top} th{color:#305cff}
+  </style>
+</head>
+<body><main>
+  <h1>仕様書 02: DB</h1>
+  <p>SQLite DB、主要テーブル、起動時チェック、運用上の注意です。</p>
+
+  <section>
+    <h2>SQLite運用方針</h2>
+    <ul>
+      <li>SQLiteは本番必須機能として扱う。</li>
+      <li>標準は <code>journal_mode=DELETE</code>。これはDB削除ではなくrollback journal方式。</li>
+      <li><code>logging.required=true</code>、<code>answer_cache.required=true</code> が標準。</li>
+      <li>required=true で初期化、schema作成、起動時書き込みチェックに失敗した場合、APIは起動しない。</li>
+      <li>開発用途でのみ required=false によりdisabled継続を許可できる。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>DBファイル</h2>
+    <table>
+      <thead><tr><th>DB</th><th>役割</th><th>設定キー</th></tr></thead>
+      <tbody>
+        <tr><td><code>logs/rag_chat_logs.sqlite</code></td><td>質問、回答、根拠preview、cache情報、latency、errorを保存。</td><td><code>logging.sqlite_path</code></td></tr>
+        <tr><td><code>logs/answer_cache.sqlite</code></td><td>承認済みQA、alias、報告、QA利用状態を保存。</td><td><code>answer_cache.sqlite_path</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>承認済みQA関連</h2>
+    <table>
+      <thead><tr><th>テーブル</th><th>概要</th></tr></thead>
+      <tbody>
+        <tr><td><code>approved_qa</code></td><td>正式質問、正式回答、根拠JSON、version、statusを保持する回答本体。</td></tr>
+        <tr><td><code>approved_qa_aliases</code></td><td>検索入口。alias_text、normalized_text、embedding_json、alias_type、statusを保持。</td></tr>
+        <tr><td><code>hallucination_reports</code></td><td>ユーザー報告、原因分類、対応方法、管理メモ、対応状態を保持。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>チャットログ関連</h2>
+    <table>
+      <thead><tr><th>項目</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>answer_source</code>, <code>cache_hit</code>, <code>qa_cache_id</code></td><td>回答元とQAキャッシュhitを判定。</td></tr>
+        <tr><td><code>source_count</code>, <code>max_score</code></td><td>根拠なし、低信頼、改善キュー抽出。</td></tr>
+        <tr><td><code>cache_candidate_qa_id</code>, <code>cache_candidate_similarity</code>, <code>cache_miss_reason</code></td><td>惜しいキャッシュミスを見つける。</td></tr>
+        <tr><td><code>latency_ms</code>, <code>error_type</code></td><td>性能とエラー監視。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>起動時チェック</h2>
+    <pre><code>mkdir(parent)
+sqlite3.connect(timeout=settings)
+PRAGMA busy_timeout
+PRAGMA foreign_keys=ON
+PRAGMA journal_mode=DELETE
+CREATE TABLE IF NOT EXISTS ...
+startup write check INSERT/DELETE/COMMIT</code></pre>
+    <p>失敗時はDBパス、journal_mode、例外内容を含むRuntimeErrorで停止します。</p>
+  </section>
+</main></body></html>

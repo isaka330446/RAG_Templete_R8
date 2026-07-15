@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>フォルダ構成 - TaxAnswer RAG</title>
+  <style>
+    body{font-family:"Segoe UI",system-ui,sans-serif;margin:0;background:#f7f8fb;color:#172033;line-height:1.75}
+    main{max-width:1120px;margin:0 auto;padding:40px 24px}
+    h1{font-size:34px;margin:0 0 8px} h2{margin-top:34px;border-bottom:1px solid #d9deea;padding-bottom:8px}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(15,23,42,.08)}
+    th,td{padding:12px 14px;border-bottom:1px solid #edf0f6;text-align:left;vertical-align:top}
+    th{background:#eef3ff;color:#305cff} code{background:#eef2ff;padding:2px 6px;border-radius:6px}
+    .note{background:#fff;border-left:5px solid #305cff;padding:14px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.06)}
+  </style>
+</head>
+<body><main>
+  <h1>フォルダ構成</h1>
+  <p>TaxAnswer相続税・贈与税RAGの最新版フォルダ構成です。一般ユーザー向けフロントはFastHTMLモダンUIの1系統に整理されています。</p>
+
+  <div class="note">
+    <strong>現在の整理方針:</strong>
+    URL、host、port、LLM/Embedding/Reranker接続先は <code>config/settings.json</code> に集約します。
+    SQLiteは本番必須で、標準の <code>journal_mode</code> は <code>DELETE</code> です。
+  </div>
+
+  <h2>主要ディレクトリ</h2>
+  <table>
+    <thead><tr><th>パス</th><th>役割</th><th>主な入口</th></tr></thead>
+    <tbody>
+      <tr><td><code>api/</code></td><td>FastAPI本体、RAGエンジン、検索、QAキャッシュ、ログDB、管理API。</td><td><code>scripts/run_api.py</code></td></tr>
+      <tr><td><code>app_fasthtml_modern/</code></td><td>一般ユーザー向けチャットUI。ポップアップ根拠表示を正式採用。</td><td><code>python -m app_fasthtml_modern.main</code></td></tr>
+      <tr><td><code>app_fasthtml_admin_common/</code></td><td>管理者向けRAG改善コンソール。6画面構成、承認QA、alias運用、ログ探索。</td><td><code>python -m app_fasthtml_admin_common.main</code></td></tr>
+      <tr><td><code>app_dev_eval/</code></td><td>開発者向け評価UI。バッチ推論、RAGAS、DeepEval、ルール採点、手動採点。</td><td><code>python -m app_dev_eval.main</code></td></tr>
+      <tr><td><code>config/</code></td><td>実運用設定。URL、DB、モデル、検索、SearchTag設定。</td><td><code>settings.json</code></td></tr>
+      <tr><td><code>data/markdown/</code></td><td>根拠文書Markdown。ファイル名は短縮ID、正式タイトルはYAMLメタデータ。</td><td>生成済みデータ</td></tr>
+      <tr><td><code>chunks/</code></td><td>parent/child chunk、SearchTag付きchunk、chunk report。</td><td><code>scripts/01_make_chunks.py</code></td></tr>
+      <tr><td><code>indexes/</code></td><td>Chromaなどの検索index保存先。</td><td><code>scripts/03_build_index.py</code></td></tr>
+      <tr><td><code>logs/</code></td><td>チャットログDB、承認済みQAキャッシュDB。</td><td><code>rag_chat_logs.sqlite</code>, <code>answer_cache.sqlite</code></td></tr>
+      <tr><td><code>eval/</code></td><td>評価セットと評価run出力。</td><td><code>eval/golden/rag_golden_dataset.jsonl</code></td></tr>
+      <tr><td><code>scripts/</code></td><td>取得、チャンク作成、index作成、QA投入、評価、起動補助。</td><td>番号順に実行</td></tr>
+      <tr><td><code>static/</code></td><td>ローカルCSS、フォント、アイコン関連。</td><td>外部CDNなし</td></tr>
+      <tr><td><code>docs/</code></td><td>運用ガイド、内部文書取り込みガイドなど。</td><td><code>operation_guide.md</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>廃止済みの構成</h2>
+  <table>
+    <thead><tr><th>旧構成</th><th>現在の扱い</th></tr></thead>
+    <tbody>
+      <tr><td><code>app/</code> 配下の旧画面</td><td>削除済み。一般ユーザー、管理者、評価UIはいずれもFastHTML系へ移行。</td></tr>
+      <tr><td>旧ポップアップ用ラッパー</td><td>削除済み。<code>app_fasthtml_modern/main.py</code> がポップアップ根拠表示を標準採用。</td></tr>
+      <tr><td>根拠表示のside drawer切替</td><td>廃止。根拠クリックは常に大型ポップアップ。</td></tr>
+      <tr><td>UIモード切替環境変数</td><td>廃止。ユーザー向けフロントは1系統のみ。</td></tr>
+    </tbody>
+  </table>
+</main></body></html>

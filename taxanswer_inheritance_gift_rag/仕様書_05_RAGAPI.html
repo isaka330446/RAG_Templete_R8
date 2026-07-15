@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>仕様書 05 RAG API</title>
+  <style>
+    body{font-family:"Segoe UI",system-ui,sans-serif;background:#f7f8fb;color:#172033;margin:0;line-height:1.75}
+    main{max-width:1180px;margin:0 auto;padding:42px 24px} h1{font-size:34px;margin:0 0 8px}
+    h2{margin-top:32px;border-bottom:1px solid #d9deea;padding-bottom:8px}
+    section{background:#fff;border:1px solid #e5e8f0;border-radius:16px;padding:20px;margin:18px 0;box-shadow:0 12px 40px rgba(15,23,42,.08)}
+    code{background:#eef2ff;border-radius:6px;padding:2px 6px}
+    table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #edf0f6;padding:10px;text-align:left;vertical-align:top} th{color:#305cff}
+  </style>
+</head>
+<body><main>
+  <h1>仕様書 05: RAG API</h1>
+  <p>FastAPIで提供するユーザー向けAPI、管理API、評価・状態確認APIの最新版です。</p>
+
+  <section>
+    <h2>起動と設定</h2>
+    <pre><code>python scripts/run_api.py</code></pre>
+    <ul>
+      <li>bind host/portは <code>config/settings.json</code> の <code>urls.api_bind_host</code> / <code>urls.api_bind_port</code>。</li>
+      <li>CORSは <code>urls.cors_allow_origins</code>。</li>
+      <li>LLM、Embedding、Reranker、alias/eval LLM接続先は <code>urls</code> セクションから取得する。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>ユーザー向けAPI</h2>
+    <table>
+      <thead><tr><th>Endpoint</th><th>用途</th><th>主なレスポンス</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST /ask</code></td><td>質問に対するRAG回答を返す。</td><td>answer, sources, debug, answer_source, cache_hit, qa_cache_id, cache_similarity</td></tr>
+        <tr><td><code>POST /ask_events</code></td><td>工程イベント付きで質問処理を行う。</td><td>progress events, final answer</td></tr>
+        <tr><td><code>POST /reports</code></td><td>回答へのユーザー報告を登録。</td><td>report_id, status</td></tr>
+        <tr><td><code>GET /health</code></td><td>軽量ヘルスチェック。</td><td>status</td></tr>
+        <tr><td><code>GET /health/deep</code></td><td>ログDB、QAキャッシュ、retrieverなどの状態確認。</td><td>logging, answer_cache, retriever</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>回答処理のdebug情報</h2>
+    <p>cache hit/missの理由を管理・改善に使うため、debugには次の情報を含めます。</p>
+    <ul>
+      <li><code>cache_lookup_query</code> と <code>retrieval_query</code></li>
+      <li><code>matched_alias_id</code>, <code>matched_alias_text</code>, <code>matched_alias_type</code></li>
+      <li><code>cache_match_method</code>, <code>cache_miss_reason</code></li>
+      <li><code>cache_candidate_qa_id</code>, <code>cache_candidate_alias_id</code>, <code>cache_candidate_similarity</code></li>
+      <li><code>answer_source</code>, <code>qa_cache_id</code>, <code>cache_similarity</code></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>管理API</h2>
+    <table>
+      <thead><tr><th>Endpoint</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET /admin/ops/summary</code></td><td>ダッシュボードKPI、品質状態、Index状態。</td></tr>
+        <tr><td><code>GET /admin/actions/improvement-candidates</code></td><td>改善キュー。no_hit、low_confidence、near_cache_miss、qa_alias_missingなど。</td></tr>
+        <tr><td><code>GET /admin/reports</code>, <code>GET /admin/reports/{id}</code></td><td>報告一覧・詳細。</td></tr>
+        <tr><td><code>POST /admin/reports/{id}/status</code></td><td>報告ステータス更新。</td></tr>
+        <tr><td><code>GET /admin/logs/status</code></td><td>ログSQLite状態。</td></tr>
+        <tr><td><code>GET /admin/logs/search</code></td><td>ログ探索。</td></tr>
+        <tr><td><code>GET /admin/index/status</code></td><td>chunk/index/SearchTag/chunk_report状態。</td></tr>
+        <tr><td><code>GET /admin/eval/status</code></td><td>評価セットと評価結果状態。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>承認QA / alias API</h2>
+    <table>
+      <thead><tr><th>Endpoint</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET /admin/qa-cache</code></td><td>承認QA一覧。</td></tr>
+        <tr><td><code>POST /admin/qa-cache</code></td><td>承認QA新規登録。必要に応じてalias生成。</td></tr>
+        <tr><td><code>PATCH /admin/qa-cache/{qa_id}</code></td><td>承認QA更新。質問/回答/根拠変更時はLLM aliasを要確認化。</td></tr>
+        <tr><td><code>POST /admin/qa-cache/{qa_id}/disable</code></td><td>承認QA無効化。</td></tr>
+        <tr><td><code>GET /admin/qa-cache/{qa_id}/aliases</code></td><td>alias一覧。</td></tr>
+        <tr><td><code>POST /admin/qa-cache/{qa_id}/aliases</code></td><td>手動alias追加。</td></tr>
+        <tr><td><code>PATCH /admin/qa-cache/aliases/{alias_id}</code></td><td>alias編集、有効/無効切替。</td></tr>
+        <tr><td><code>POST /admin/qa-cache/{qa_id}/aliases/generate</code></td><td>LLM alias生成。dry-run/保存/置換に対応。</td></tr>
+        <tr><td><code>POST /admin/qa-cache/backfill-aliases</code></td><td>既存QAへのoriginal/LLM alias補完。</td></tr>
+        <tr><td><code>POST /admin/qa-cache/reload-index</code></td><td>alias in-memory index reload。</td></tr>
+        <tr><td><code>POST /admin/qa-cache/match-debug</code></td><td>質問がなぜhit/missするかを確認。</td></tr>
+        <tr><td><code>GET /admin/qa-cache/alias-conflicts</code></td><td>同一normalized aliasが複数QAに存在する競合を確認。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>互換性</h2>
+    <p>既存レスポンス項目は可能な限り維持し、新しい管理・debug項目は追加項目として扱います。</p>
+  </section>
+</main></body></html>

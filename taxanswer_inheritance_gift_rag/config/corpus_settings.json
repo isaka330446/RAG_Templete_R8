@@ -1,0 +1,52 @@
+{
+  "corpora": [
+    {
+      "corpus_id": "nta_taxanswer_asset_tax",
+      "display_name": "国税庁タックスアンサー（相続・贈与・財産評価・譲渡所得）",
+      "description": "国税庁タックスアンサーのうち、相続税、贈与税、財産評価、資産税関連の譲渡所得を対象にしたRAGコーパスです。",
+      "markdown_dir": "data/markdown/nta_taxanswer_asset_tax",
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "corpus_id": "nta_sozoku_kihon_tsutatsu",
+      "display_name": "国税庁 相続税法基本通達",
+      "description": "相続税法基本通達を対象にしたRAGコーパスです。",
+      "markdown_dir": "data/markdown/nta_sozoku_kihon_tsutatsu",
+      "priority": 20,
+      "enabled": true
+    },
+    {
+      "corpus_id": "nta_zaisan_hyoka_kihon_tsutatsu",
+      "display_name": "国税庁 財産評価基本通達",
+      "description": "財産評価基本通達を対象にしたRAGコーパスです。",
+      "markdown_dir": "data/markdown/nta_zaisan_hyoka_kihon_tsutatsu",
+      "priority": 21,
+      "enabled": true
+    },
+    {
+      "corpus_id": "nta_sozoku_sochiho_tsutatsu",
+      "display_name": "国税庁 租税特別措置法（相続税法の特例関係）通達",
+      "description": "租税特別措置法（相続税法の特例関係）の取扱いについての通達を対象にしたRAGコーパスです。",
+      "markdown_dir": "data/markdown/nta_sozoku_sochiho_tsutatsu",
+      "priority": 22,
+      "enabled": true
+    },
+    {
+      "corpus_id": "nta_sozoku_joho_zeikaishaku_pdf",
+      "display_name": "国税庁 相続税・贈与税関係 情報PDF",
+      "description": "国税庁の相続税・贈与税関係の情報・税解釈PDFを対象にしたRAGコーパスです。",
+      "markdown_dir": "data/markdown/nta_sozoku_joho_zeikaishaku_pdf",
+      "priority": 30,
+      "enabled": true
+    },
+    {
+      "corpus_id": "nta_sozoku_shitsugi",
+      "display_name": "国税庁 質疑応答事例（相続税・贈与税）",
+      "description": "国税庁の相続税・贈与税に関する質疑応答事例を対象にしたRAGコーパスです。",
+      "markdown_dir": "data/markdown/nta_sozoku_shitsugi",
+      "priority": 40,
+      "enabled": true
+    }
+  ]
+}

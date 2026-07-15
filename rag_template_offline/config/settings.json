@@ -1,0 +1,109 @@
+{
+  "api": {
+    "allow_credentials": false
+  },
+  "admin": {
+    "variant_key": "analyst_saas"
+  },
+  "urls": {
+    "rag_api_base_url": "http://127.0.0.1:8000",
+    "llm_base_url": "http://127.0.0.1:8001/v1",
+    "embedding_base_url": "http://127.0.0.1:8002/v1",
+    "reranker_base_url": "http://127.0.0.1:8003",
+    "alias_llm_base_url": "http://127.0.0.1:8004/v1",
+    "eval_llm_base_url": "http://127.0.0.1:8004/v1",
+    "api_bind_host": "127.0.0.1",
+    "api_bind_port": 8000,
+    "frontend_bind_host": "127.0.0.1",
+    "frontend_bind_port": 8623,
+    "admin_bind_host": "127.0.0.1",
+    "admin_bind_port": 8640,
+    "dev_eval_bind_host": "127.0.0.1",
+    "dev_eval_bind_port": 8650,
+    "allow_runtime_api_url_override": false,
+    "cors_allow_origins": [
+      "http://127.0.0.1:8623",
+      "http://localhost:8623",
+      "http://127.0.0.1:8640",
+      "http://localhost:8640"
+    ]
+  },
+  "llm": {
+    "api_key": "dummy",
+    "model": "local-model",
+    "temperature": 0.1,
+    "max_tokens": 2048,
+    "timeout_sec": 180
+  },
+  "embedding": {
+    "api_key": "dummy",
+    "model": "BAAI/bge-m3",
+    "timeout_sec": 180
+  },
+  "alias_llm": {
+    "api_key": "dummy",
+    "model": "small-local-model",
+    "temperature": 0.0,
+    "max_tokens": 800,
+    "timeout_sec": 60
+  },
+  "retrieval": {
+    "chroma_path": "indexes/chroma",
+    "collection_name": "rag_children",
+    "collection_prefix": "rag_",
+    "top_k_dense": 20,
+    "top_k_bm25": 20,
+    "top_k_final": 8,
+    "bm25_weight": 0.35,
+    "dense_weight": 0.65,
+    "max_parent_context_chars": 18000
+  },
+  "reranker": {
+    "enabled": false,
+    "top_k": 8,
+    "timeout_sec": 60
+  },
+  "chat": {
+    "max_history_messages": 10
+  },
+  "logging": {
+    "enabled": true,
+    "required": true,
+    "sqlite_path": "logs/rag_chat_logs.sqlite",
+    "busy_timeout_ms": 10000,
+    "connect_timeout_sec": 30,
+    "journal_mode": "DELETE",
+    "startup_write_check": true,
+    "max_source_preview_chars": 500,
+    "store_full_source_text": false
+  },
+  "answer_cache": {
+    "enabled": true,
+    "required": true,
+    "sqlite_path": "logs/answer_cache.sqlite",
+    "busy_timeout_ms": 10000,
+    "connect_timeout_sec": 30,
+    "journal_mode": "DELETE",
+    "startup_write_check": true,
+    "high_similarity_threshold": 0.88,
+    "semantic_accept_threshold": 0.88,
+    "semantic_gray_threshold": 0.82,
+    "margin_threshold": 0.03,
+    "corpus_version": "rag_template_v1",
+    "index_version": "bge-m3_chroma_v1",
+    "enable_alias_search": true,
+    "enable_alias_generation": true,
+    "max_aliases_per_qa": 8,
+    "alias_default_status": "active",
+    "generated_alias_default_status": "active",
+    "enable_llm_intent_judge": false,
+    "intent_judge_gray_min": 0.82,
+    "alias_generation_temperature": 0.0,
+    "alias_generation_max_tokens": 1200
+  },
+  "search_tags": {
+    "enabled_in_retrieval": true,
+    "admin_edit_enabled": false,
+    "show_improvement_candidates": false
+  }
+}

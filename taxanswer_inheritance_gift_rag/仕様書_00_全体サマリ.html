@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>仕様書 00 全体サマリ</title>
+  <style>
+    body{font-family:"Segoe UI",system-ui,sans-serif;background:#f7f8fb;color:#172033;margin:0;line-height:1.75}
+    main{max-width:1100px;margin:0 auto;padding:42px 24px} h1{font-size:34px;margin:0 0 8px}
+    h2{margin-top:32px;border-bottom:1px solid #d9deea;padding-bottom:8px}
+    section{background:#fff;border:1px solid #e5e8f0;border-radius:16px;padding:20px;margin:18px 0;box-shadow:0 12px 40px rgba(15,23,42,.08)}
+    code{background:#eef2ff;border-radius:6px;padding:2px 6px} li{margin:6px 0}
+    table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #edf0f6;padding:10px;text-align:left;vertical-align:top} th{color:#305cff}
+  </style>
+</head>
+<body><main>
+  <h1>仕様書 00: 全体サマリ</h1>
+  <p>国税庁TaxAnswer、通達、質疑応答事例、関連PDFを対象にした相続税・贈与税向けRAGアプリの最新版仕様です。</p>
+
+  <section>
+    <h2>目的</h2>
+    <ul>
+      <li>利用者が税務文書を根拠付きで検索し、RAG回答と根拠本文を確認できるようにする。</li>
+      <li>管理者が回答品質、根拠なし、低信頼、報告、承認済みQA、aliasを継続改善できるようにする。</li>
+      <li>開発者がJSONL/CSV評価セットでバッチ推論、自動評価、手動採点を実行できるようにする。</li>
+      <li>会社Windowsオフライン環境を前提に、URLとSQLite設定を一元管理する。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>現行アプリ構成</h2>
+    <table>
+      <thead><tr><th>区分</th><th>実装</th><th>起動</th></tr></thead>
+      <tbody>
+        <tr><td>RAG API</td><td>FastAPI。検索、生成、QAキャッシュ、ログ、管理API。</td><td><code>python scripts/run_api.py</code></td></tr>
+        <tr><td>ユーザー向けチャット</td><td>FastHTMLモダンUIのみ。根拠は大型ポップアップ。</td><td><code>python -m app_fasthtml_modern.main</code></td></tr>
+        <tr><td>管理者アプリ</td><td>FastHTML RAG改善コンソール。6画面構成。</td><td><code>python -m app_fasthtml_admin_common.main</code></td></tr>
+        <tr><td>開発者評価UI</td><td>FastHTML。バッチ推論、自動評価、手動採点。</td><td><code>python -m app_dev_eval.main</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>重要な設計方針</h2>
+    <ul>
+      <li>URL、host、port、LLM/Embedding/Reranker接続先、CORS許可URLは <code>config/settings.json</code> の <code>urls</code> に集約する。</li>
+      <li><code>.env</code> は原則 <code>SETTINGS_PATH</code> など最小限に限定する。</li>
+      <li>SQLiteは本番必須。<code>logging.required=true</code> と <code>answer_cache.required=true</code> が標準。</li>
+      <li>SQLite標準の <code>journal_mode</code> は <code>DELETE</code>。これはDB削除ではなくrollback journal方式。</li>
+      <li>一般ユーザー向けフロントは <code>app_fasthtml_modern/main.py</code> の1系統のみ。</li>
+      <li>承認済みQA本体は <code>approved_qa</code>、検索入口は <code>approved_qa_aliases</code>。</li>
+      <li>ユーザー質問を毎回LLMで拡張しない。実行時はEmbedding 1回 + alias検索を基本にする。</li>
+      <li>SearchTagは削除せず補助機能として扱い、主改善導線はQA alias、承認QA化、文書不足確認を優先する。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>廃止済み</h2>
+    <ul>
+      <li>旧ユーザー画面、旧管理画面、旧評価画面はFastHTML構成へ統合済み。</li>
+      <li>ポップアップ用ラッパーアプリは廃止。ユーザー向けFastHTML本体がポップアップ方式を標準採用。</li>
+      <li>根拠表示のside drawer切替、UIモード切替環境変数は廃止。</li>
+    </ul>
+  </section>
+</main></body></html>

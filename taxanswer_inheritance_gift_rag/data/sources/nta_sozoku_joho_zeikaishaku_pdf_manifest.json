@@ -1,0 +1,77 @@
+{
+  "corpus_id": "nta_sozoku_joho_zeikaishaku_pdf",
+  "source_site": "国税庁",
+  "document_type": "情報・質疑応答PDF",
+  "started_at": "2026-06-10T11:54:57.419426+00:00",
+  "finished_at": "2026-06-10T11:55:08.979744+00:00",
+  "target_count": 4,
+  "markdown_count": 4,
+  "page_count": 360,
+  "extracted_chars": 350155,
+  "statuses": {
+    "ok": 4
+  },
+  "outputs": {
+    "links_csv": "data/sources/nta_sozoku_joho_zeikaishaku_pdf_links.csv",
+    "pdf_dir": "data/pdf/nta_sozoku_joho_zeikaishaku_pdf",
+    "markdown_dir": "data/markdown/nta_sozoku_joho_zeikaishaku_pdf"
+  },
+  "targets": [
+    {
+      "document_id": "0025006-064",
+      "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0025006-064.pdf",
+      "title": "個人の事業用資産についての贈与税・相続税の納税猶予及び免除に関する質疑応答事例について（情報）",
+      "document_type": "情報・質疑応答PDF",
+      "tax_type": "相続税・贈与税",
+      "corpus_id": "nta_sozoku_joho_zeikaishaku_pdf",
+      "pdf_path": "data/pdf/nta_sozoku_joho_zeikaishaku_pdf/0025006-064.pdf",
+      "markdown_path": "data/markdown/nta_sozoku_joho_zeikaishaku_pdf/0025006-064_個人の事業用資産についての贈与税・相続税の納税猶予及び免除に関する質疑応答事例について（情報）.md",
+      "page_count": 107,
+      "extracted_chars": 106099,
+      "fetch_status": "ok",
+      "error": ""
+    },
+    {
+      "document_id": "0025005-103",
+      "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0025005-103.pdf",
+      "title": "非上場株式等についての贈与税・相続税の納税猶予及び免除の特例措置等に関する質疑応答事例について（情報）",
+      "document_type": "情報・質疑応答PDF",
+      "tax_type": "相続税・贈与税",
+      "corpus_id": "nta_sozoku_joho_zeikaishaku_pdf",
+      "pdf_path": "data/pdf/nta_sozoku_joho_zeikaishaku_pdf/0025005-103.pdf",
+      "markdown_path": "data/markdown/nta_sozoku_joho_zeikaishaku_pdf/0025005-103_非上場株式等についての贈与税・相続税の納税猶予及び免除の特例措置等に関する質疑応答事例について（情報）.md",
+      "page_count": 185,
+      "extracted_chars": 185202,
+      "fetch_status": "ok",
+      "error": ""
+    },
+    {
+      "document_id": "0024006-159",
+      "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024006-159.pdf",
+      "title": "相続税及び贈与税等に関する質疑応答事例（令和５年度税制改正関係）",
+      "document_type": "情報・質疑応答PDF",
+      "tax_type": "相続税・贈与税",
+      "corpus_id": "nta_sozoku_joho_zeikaishaku_pdf",
+      "pdf_path": "data/pdf/nta_sozoku_joho_zeikaishaku_pdf/0024006-159.pdf",
+      "markdown_path": "data/markdown/nta_sozoku_joho_zeikaishaku_pdf/0024006-159_相続税及び贈与税等に関する質疑応答事例（令和５年度税制改正関係）.md",
+      "page_count": 30,
+      "extracted_chars": 27524,
+      "fetch_status": "ok",
+      "error": ""
+    },
+    {
+      "document_id": "0024005-164",
+      "url": "https://www.nta.go.jp/law/joho-zeikaishaku/sozoku/pdf/0024005-164.pdf",
+      "title": "相続時精算課税に係る土地又は建物の価額の特例に関する質疑応答事例について（情報）",
+      "document_type": "情報・質疑応答PDF",
+      "tax_type": "相続税・贈与税",
+      "corpus_id": "nta_sozoku_joho_zeikaishaku_pdf",
+      "pdf_path": "data/pdf/nta_sozoku_joho_zeikaishaku_pdf/0024005-164.pdf",
+      "markdown_path": "data/markdown/nta_sozoku_joho_zeikaishaku_pdf/0024005-164_相続時精算課税に係る土地又は建物の価額の特例に関する質疑応答事例について（情報）.md",
+      "page_count": 38,
+      "extracted_chars": 31330,
+      "fetch_status": "ok",
+      "error": ""
+    }
+  ]
+}

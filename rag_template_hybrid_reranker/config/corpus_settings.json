@@ -1,0 +1,12 @@
+{
+  "corpora": [
+    {
+      "corpus_id": "sample_corpus",
+      "display_name": "サンプル文書",
+      "description": "テンプレート動作確認用のサンプル文書です。",
+      "markdown_dir": "data/markdown/sample_corpus",
+      "priority": 100,
+      "enabled": true
+    }
+  ]
+}

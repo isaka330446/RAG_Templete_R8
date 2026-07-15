@@ -1,0 +1,20 @@
+{
+  "corpora": [
+    {
+      "corpus_id": "meeting_documents",
+      "display_name": "会議資料・議事録",
+      "description": "PowerPoint会議資料と議事録のMarkdown化結果を取り込む会議RAG用コーパスです。",
+      "markdown_dir": "data/markdown/meeting_documents",
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "corpus_id": "sample_corpus",
+      "display_name": "サンプル文書",
+      "description": "テンプレート動作確認用のサンプル文書です。",
+      "markdown_dir": "data/markdown/sample_corpus",
+      "priority": 100,
+      "enabled": true
+    }
+  ]
+}

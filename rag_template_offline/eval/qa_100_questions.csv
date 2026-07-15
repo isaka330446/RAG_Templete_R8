@@ -1,0 +1,3 @@
+question_id,question,expected_answer,expected_sources,corpus_ids,answer_type,difficulty,notes
+SAMPLE_Q001,登録済み文書に根拠がない質問にはどう答えるべきですか？,推測で断定せず確認が必要と伝える。,sample_policy_001,sample_docs,answerable,easy,CSV互換用サンプル
+SAMPLE_Q002,新しいMarkdown文書を追加した後に実行する手順は？,チャンク作成、SearchTag作成、インデックス作成の順に実行する。,sample_manual_001,sample_docs,answerable,easy,CSV互換用サンプル

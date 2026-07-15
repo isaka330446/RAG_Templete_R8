@@ -1,0 +1,2 @@
+question_id,question,expected_answer,expected_source,corpus_ids,category,difficulty,memo
+Q001,サンプル申請書はいつ提出しますか？,申請者は必要事項を記載したサンプル申請書を提出します。,sample.md 第3条,sample_corpus,手続,低,

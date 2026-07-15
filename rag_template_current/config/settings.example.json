@@ -1,0 +1,36 @@
+{
+  "api": {
+    "cors_allow_origins": [
+      "http://localhost:8501",
+      "http://127.0.0.1:8501"
+    ],
+    "allow_credentials": false
+  },
+  "llm": {
+    "base_url": "http://127.0.0.1:8001/v1",
+    "api_key": "dummy",
+    "model": "local-model",
+    "temperature": 0.1,
+    "max_tokens": 2048,
+    "timeout_sec": 180
+  },
+  "embedding": {
+    "base_url": "http://127.0.0.1:8002/v1",
+    "api_key": "dummy",
+    "model": "BAAI/bge-m3",
+    "timeout_sec": 180
+  },
+  "retrieval": {
+    "chroma_path": "indexes/chroma",
+    "collection_name": "rag_children",
+    "top_k_final": 8,
+    "max_parent_context_chars": 18000
+  },
+  "chat": {
+    "max_history_messages": 10
+  },
+  "logging": {
+    "enabled": true,
+    "sqlite_path": "logs/rag_chat_logs.sqlite"
+  }
+}

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>仕様書 03 ユーザーアプリ</title>
+  <style>
+    body{font-family:"Segoe UI",system-ui,sans-serif;background:#f7f8fb;color:#172033;margin:0;line-height:1.75}
+    main{max-width:1100px;margin:0 auto;padding:42px 24px} h1{font-size:34px;margin:0 0 8px}
+    h2{margin-top:32px;border-bottom:1px solid #d9deea;padding-bottom:8px}
+    section{background:#fff;border:1px solid #e5e8f0;border-radius:16px;padding:20px;margin:18px 0;box-shadow:0 12px 40px rgba(15,23,42,.08)}
+    code{background:#eef2ff;border-radius:6px;padding:2px 6px} li{margin:6px 0}
+    table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #edf0f6;padding:10px;text-align:left;vertical-align:top} th{color:#305cff}
+  </style>
+</head>
+<body><main>
+  <h1>仕様書 03: ユーザーアプリ</h1>
+  <p>一般ユーザー向けチャットアプリは <code>app_fasthtml_modern/main.py</code> のみです。</p>
+
+  <section>
+    <h2>起動</h2>
+    <pre><code>python -m app_fasthtml_modern.main</code></pre>
+    <p>host/portは <code>config/settings.json</code> の <code>urls.frontend_bind_host</code> / <code>urls.frontend_bind_port</code> を使います。RAG API接続先は <code>urls.rag_api_base_url</code> から取得します。</p>
+  </section>
+
+  <section>
+    <h2>画面構成</h2>
+    <ul>
+      <li>左端に細いレールを固定し、アイコンを上揃えで表示する。</li>
+      <li>通常時はレールのみ、ホバー/フォーカスでラベル付きメニューを展開する。</li>
+      <li>初期画面は中央ヒーロー、質問入力フォーム、質問例カードを表示する。</li>
+      <li>質問送信後も入力フォームのデザインは初期画面と統一し、回答部分を不要な白枠で囲わない。</li>
+      <li>新規チャットはChat Add Onアイコンとして、画面状態に応じて自然に配置する。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>初期画面</h2>
+    <ul>
+      <li>見出し: 「今日は何を確認しますか？」</li>
+      <li>説明: 「タックスアンサー、通達、質疑応答事例を横断的に、相続税・贈与税・財産評価の判断材料を確認できます。」</li>
+      <li>入力欄は見出しと説明文の直下、中央軸に揃える。</li>
+      <li>右側または下部に質問例カードを表示し、クリックで入力欄へ反映する。</li>
+      <li>質問例は承認済みQAの新しいものを優先し、取得できない場合は静的fallbackを使う。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>回答表示</h2>
+    <ul>
+      <li>RAG回答は全幅を使って読みやすく表示する。</li>
+      <li>回答下部に根拠チップ、報告ボタン、承認済みQA登録ボタンを表示する。</li>
+      <li>根拠なし/低信頼時はユーザー向けの次アクションを表示する。</li>
+      <li>回答生成中は工程表示を行い、現在工程の点だけをアニメーションさせる。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>根拠表示</h2>
+    <ul>
+      <li>根拠表示は大型ポップアップ方式のみ。</li>
+      <li>side drawer方式とUIモード切替は廃止。</li>
+      <li>本文中の「根拠1」「根拠①」「[2]」「根拠: タイトル」などを可能な範囲で根拠リンク化する。</li>
+      <li>ポップアップは背景オーバーレイ、閉じるボタン、ESC、背景クリックで閉じる。</li>
+      <li>根拠タイトル、文書種別、出典ファイル、見出し、本文preview/親chunkを表示する。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>廃止済み</h2>
+    <table>
+      <thead><tr><th>旧要素</th><th>現在</th></tr></thead>
+      <tbody>
+        <tr><td>旧ユーザー画面</td><td>削除済み。</td></tr>
+        <tr><td>ポップアップラッパーアプリ</td><td>削除済み。モダン本体がポップアップ方式。</td></tr>
+        <tr><td>根拠表示UIモード切替</td><td>廃止。</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main></body></html>

@@ -1,0 +1,26 @@
+.env
+.sesskey
+.venv/
+.tmp_pypdf/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+chunks/*
+!chunks/.gitkeep
+indexes/chroma/*
+!indexes/chroma/.gitkeep
+
+logs/*
+!logs/.gitkeep
+
+eval/eval_results.csv
+eval/*_rag_results.csv
+eval/*_rag_results.jsonl
+eval/runs/
+
+# Company-internal source documents must stay local.
+data/markdown/company_internal/
+data/markdown/company_*/
+data/raw_internal/
+data/internal/
