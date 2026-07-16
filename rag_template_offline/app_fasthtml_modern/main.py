@@ -359,12 +359,10 @@ class ConversationStore:
     def ensure(self, session_id: str) -> list[dict]:
         return self.sessions.setdefault(session_id, [])
 
-    def history_for_api(self, session_id: str) -> list[dict]:
-        return [
-            {"role": msg["role"], "content": msg["content"]}
-            for msg in self.ensure(session_id)
-            if msg.get("role") in {"user", "assistant"} and msg.get("content")
-        ]
+    def clear(self, session_id: str) -> None:
+        # ユーザー画面では会話履歴を保持せず、直近の質問と回答だけを
+        # 根拠表示・報告操作のため一時的に保持する。
+        self.sessions[session_id] = []
 
     def source(self, session_id: str, message_index: int, source_index: int) -> dict | None:
         messages = self.ensure(session_id)
@@ -2741,9 +2739,7 @@ def composer_html(form_id: str, session_id: str, selected: list[str], top_k: int
         f'<input type="hidden" name="corpus_ids" value="{esc(corpus_id)}">'
         for corpus_id in unique_selected(list(selected))
     )
-    new_chat_html = "" if initial else (
-        f'<a class="composer-new-chat" href="/" aria-label="チャットを新規作成" title="チャットを新規作成">{ms_icon("edit", "small")}</a>'
-    )
+    new_chat_html = ""
     return f"""
     <form id="{esc(form_id)}" action="/ask_stream" data-chat-form class="{class_name}">
       <input type="hidden" name="session_id" value="{esc(session_id)}">
@@ -2983,7 +2979,7 @@ async def home(request: Request) -> HTMLResponse:
     selected = request.query_params.getlist("corpus_ids") or selected_default(corpora)
     top_k = int(request.query_params.get("top_k") or DEFAULT_TOP_K)
     api_url = rag_ask_url()
-    store.ensure(session_id)
+    store.clear(session_id)
     return HTMLResponse(page_html(session_id, api_url, selected, top_k))
 
 
@@ -2994,14 +2990,13 @@ async def ask(request: Request) -> HTMLResponse:
     selected = selected_from_form(form)
     top_k = int(form.get("top_k") or DEFAULT_TOP_K)
     question = str(form.get("question") or "").strip()
-    store.ensure(session_id)
+    store.clear(session_id)
 
     if not selected:
         return HTMLResponse(workspace_html(session_id=session_id, api_url=api_url, selected=selected, top_k=top_k, notice="検索対象文書を1つ以上選択してください。"))
     if not question:
         return HTMLResponse(workspace_html(session_id=session_id, api_url=api_url, selected=selected, top_k=top_k, notice="質問を入力してください。"))
 
-    history = store.history_for_api(session_id)
     store.ensure(session_id).append({"role": "user", "content": question})
     payload = {
         "question": question,
@@ -3009,7 +3004,7 @@ async def ask(request: Request) -> HTMLResponse:
         "top_k": top_k,
         "show_debug": False,
         "session_id": session_id,
-        "history": history,
+        "history": [],
     }
     try:
         async with httpx.AsyncClient(timeout=300) as client:
@@ -3044,7 +3039,7 @@ async def ask_stream(request: Request) -> StreamingResponse:
     selected = selected_from_form(form)
     top_k = int(form.get("top_k") or DEFAULT_TOP_K)
     question = str(form.get("question") or "").strip()
-    store.ensure(session_id)
+    store.clear(session_id)
 
     async def events():
         if not selected:
@@ -3068,7 +3063,6 @@ async def ask_stream(request: Request) -> StreamingResponse:
             yield stream_json({"type": "done", "stage": "done", "message": "入力を確認してください", "html": html_value})
             return
 
-        history = store.history_for_api(session_id)
         store.ensure(session_id).append({"role": "user", "content": question})
         payload = {
             "question": question,
@@ -3076,7 +3070,7 @@ async def ask_stream(request: Request) -> StreamingResponse:
             "top_k": top_k,
             "show_debug": False,
             "session_id": session_id,
-            "history": history,
+            "history": [],
         }
         try:
             async with httpx.AsyncClient(timeout=300) as client:

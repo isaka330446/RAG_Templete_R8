@@ -1428,28 +1428,18 @@ def document_register_panel(corpora: list[dict], base_url: str) -> str:
     return f"""
     <section class="panel">
       <h2>Markdown文書登録</h2>
-      <p class="lead">Markdown化済みの文書を保存し、必要に応じてチャンキングとベクトルIndex再構築まで実行します。</p>
-      <form method="post" action="/documents-register" data-loading-message="Markdown文書を登録し、チャンキング/ベクトル化を実行しています...">
+      <p class="lead">登録先を選び、UTF-8形式のMarkdownファイルをアップロードしてください。</p>
+      <form method="post" action="/documents-register" enctype="multipart/form-data" data-loading-message="Markdown文書を登録し、チャンキング/ベクトル化を実行しています...">
         {base_input}
         <div class="grid-2">
-          <div class="field"><label>Corpus ID</label><input name="corpus_id" list="corpus-id-options" placeholder="例: internal_manual" required><datalist id="corpus-id-options">{options}</datalist></div>
-          <div class="field"><label>表示名</label><input name="display_name" placeholder="例: 社内マニュアル"></div>
-          <div class="field"><label>Markdown保存先</label><input name="markdown_dir" placeholder="既存corpusは空欄で既存設定を使用"></div>
-          <div class="field"><label>優先度</label><input name="priority" value="100"></div>
-          <div class="field"><label>文書種別</label><input name="document_type" value="manual"></div>
-          <div class="field"><label>文書ID</label><input name="document_id" placeholder="例: manual_001"></div>
-          <div class="field"><label>ファイル名</label><input name="filename" placeholder="空欄なら文書IDまたはタイトルから自動生成"></div>
-          <div class="field"><label>出典URL/メモ</label><input name="source_url" placeholder="任意"></div>
-          <div class="field"><label>有効開始日</label><input type="date" name="valid_from"></div>
-          <div class="field"><label>有効終了日</label><input type="date" name="valid_until"></div>
+          <div class="field"><label>登録先文書セット</label><select name="corpus_id" required><option value="">選択してください</option>{options}</select></div>
+          <div class="field"><label>Markdownファイル</label><input type="file" name="markdown_file" accept=".md,.markdown,text/markdown,text/plain" required></div>
         </div>
-        <div class="field"><label>タイトル</label><input name="title" required></div>
-        <div class="field"><label>Markdown本文</label><textarea name="markdown_text" rows="16" placeholder="# 見出し&#10;&#10;本文..." required></textarea></div>
+        <div class="notice">拡張子 .md または .markdown、UTF-8形式、最大20MB。ファイル名を文書IDとタイトルの初期値に使用します。</div>
         <div class="qa-register-actions">
-          <label><input type="checkbox" name="enabled" checked> このcorpusを検索対象にする</label>
           <label><input type="checkbox" name="run_chunking" checked> チャンキングを実行</label>
           <label><input type="checkbox" name="run_indexing" checked> ベクトル化を実行</label>
-          <button class="btn" type="submit">登録してIndex更新</button>
+          <button class="btn" type="submit">ファイルを登録してIndex更新</button>
         </div>
       </form>
     </section>
@@ -1755,24 +1745,35 @@ async def handle_index_corpus_toggle(request: Request) -> RedirectResponse:
 async def handle_document_register(request: Request) -> HTMLResponse:
     form = await request.form()
     base_url = normalize_base_url(form.get("base_url"))
+    variant = getattr(request.app.state, "variant", next(iter(VARIANTS.values())))
+    corpus_id = str(form.get("corpus_id") or "").strip()
+    if not corpus_id:
+        return HTMLResponse(page_shell(variant, "index_eval", base_url, error_panel("Markdown文書を登録できません", "登録先文書セットを選択してください。")), status_code=422)
+    upload = form.get("markdown_file")
+    filename = str(getattr(upload, "filename", "") or "").strip()
+    suffix = Path(filename).suffix.casefold()
+    if not filename or suffix not in {".md", ".markdown"} or not hasattr(upload, "read"):
+        return HTMLResponse(page_shell(variant, "index_eval", base_url, error_panel("Markdown文書を登録できません", "拡張子 .md または .markdown のファイルを選択してください。")), status_code=422)
+    raw = await upload.read()
+    if not raw:
+        return HTMLResponse(page_shell(variant, "index_eval", base_url, error_panel("Markdown文書を登録できません", "アップロードされたファイルが空です。")), status_code=422)
+    if len(raw) > 20 * 1024 * 1024:
+        return HTMLResponse(page_shell(variant, "index_eval", base_url, error_panel("Markdown文書を登録できません", "ファイルサイズは20MB以下にしてください。")), status_code=413)
+    try:
+        markdown_text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return HTMLResponse(page_shell(variant, "index_eval", base_url, error_panel("Markdown文書を登録できません", "ファイルをUTF-8形式で保存してからアップロードしてください。")), status_code=422)
+    document_name = Path(filename).stem.strip() or "document"
     payload = {
-        "corpus_id": str(form.get("corpus_id") or "").strip(),
-        "display_name": str(form.get("display_name") or "").strip(),
-        "markdown_dir": str(form.get("markdown_dir") or "").strip(),
-        "priority": str(form.get("priority") or "").strip(),
-        "enabled": bool(form.get("enabled")),
-        "document_type": str(form.get("document_type") or "").strip(),
-        "document_id": str(form.get("document_id") or "").strip(),
-        "filename": str(form.get("filename") or "").strip(),
-        "source_url": str(form.get("source_url") or "").strip(),
-        "valid_from": str(form.get("valid_from") or "").strip(),
-        "valid_until": str(form.get("valid_until") or "").strip(),
-        "title": str(form.get("title") or "").strip(),
-        "markdown_text": str(form.get("markdown_text") or ""),
+        "corpus_id": corpus_id,
+        "document_type": "manual",
+        "document_id": document_name,
+        "filename": filename,
+        "title": document_name,
+        "markdown_text": markdown_text,
         "run_chunking": bool(form.get("run_chunking")),
         "run_indexing": bool(form.get("run_indexing")),
     }
-    variant = getattr(request.app.state, "variant", next(iter(VARIANTS.values())))
     try:
         result = await api_post(base_url, "/admin/documents/register-markdown", payload, timeout=7200)
     except Exception as exc:
