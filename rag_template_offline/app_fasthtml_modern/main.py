@@ -2489,7 +2489,6 @@ def toolbar_html(api_url: str, selected: list[str], top_k: int, corpora: list[di
     dock_items = [
         ("edit", "新しいチャット", "/"),
         ("folder", "文書セット", "#document-sets"),
-        ("history", "質問履歴", "#chat-history"),
         ("star", "質問例", "#question-templates"),
         ("help", "使い方", "#usage-guide"),
         ("tune", "設定", "#settings"),
