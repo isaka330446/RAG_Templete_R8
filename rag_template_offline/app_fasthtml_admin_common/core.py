@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import quote, urlencode
@@ -79,6 +80,31 @@ RESOLUTION_TYPES = {
     "other": "その他",
 }
 
+CACHE_MISS_REASON_LABELS = {
+    "disabled": "承認QAキャッシュが無効です",
+    "no_alias_index": "QA別名インデックスがありません",
+    "alias_conflict": "複数のQA別名が競合しています",
+    "invalid_query_embedding": "質問ベクトルが不正です",
+    "dimension_mismatch": "質問とQA別名のベクトル次元が一致しません",
+    "version_mismatch_or_corpus_filtered": "文書またはインデックスの版が違うか、検索対象外です",
+    "no_candidates": "一致候補がありません",
+    "below_gray_threshold": "類似度が判定対象の下限未満です",
+    "margin_too_small": "1位と2位の類似度差が小さすぎます",
+    "below_accept_threshold": "類似度が採用基準未満です",
+    "llm_judge_rejected": "LLMの意図判定で不採用になりました",
+}
+
+CHUNK_WARNING_LABELS = {
+    "parent_over_max_chars": "親チャンクが最大文字数を超えています",
+    "parent_under_min_chars": "親チャンクが最小文字数を下回っています",
+    "parent_child_counts_too_close": "親チャンク数と子チャンク数が近すぎます",
+    "large_document_not_split": "大きな文書が十分に分割されていません",
+    "configured_headings_not_found": "設定した見出しが文書内に見つかりません",
+    "html_comment_markers_not_found": "HTMLコメントの区切りマーカーが見つかりません",
+    "text_before_first_parent_marker_ignored": "最初の親マーカーより前の文章が無視されました",
+    "fallback_to_heading_chunking": "見出し単位の分割へ切り替えました",
+}
+
 
 def esc(value: object) -> str:
     return html.escape(str(value or ""), quote=True)
@@ -95,6 +121,25 @@ def text_block(value: object) -> str:
 def short_text(value: object, limit: int = 90) -> str:
     text = str(value or "").strip().replace("\r\n", "\n").replace("\n", " ")
     return text if len(text) <= limit else text[: max(0, limit - 1)] + "..."
+
+
+def japanese_reason_hint(value: object) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return "-"
+    for code, label in CACHE_MISS_REASON_LABELS.items():
+        text = text.replace(f"reason={code}", f"理由={label}")
+        if text == code:
+            text = label
+    text = text.replace("similarity=", "類似度=").replace("reason=", "理由=")
+    for code, label in CHUNK_WARNING_LABELS.items():
+        text = text.replace(code, label)
+    text = re.sub(r"empty_child_marker:([^|,'\] ]+)", r"子チャンクマーカーの内容が空です（マーカーID: \1）", text)
+    text = re.sub(r"empty_parent_marker:([^|,'\] ]+)", r"親チャンクマーカーの内容が空です（マーカーID: \1）", text)
+    # 未知の内部コードだけが渡された場合は英語コードを画面へ露出しない。
+    if not re.search(r"[ぁ-んァ-ヶ一-龠]", text) and re.search(r"[A-Za-z_]", text):
+        return "未分類のチャンク生成警告です。chunk_report.csvで詳細を確認してください"
+    return text
 
 
 def js_string(value: object) -> str:
@@ -774,7 +819,7 @@ def task_rows(tasks: list[dict], base_url: str, limit: int | None = None) -> lis
             esc(task.get("last_seen_at") or "-"),
             esc(task.get("related_corpus") or "-"),
             esc(task.get("max_score") if task.get("max_score") is not None else "-"),
-            esc(task.get("reason_hint")),
+            esc(japanese_reason_hint(task.get("reason_hint"))),
             esc(task.get("suggested_action")),
             '<div class="right-actions">' + "".join(operations) + "</div>",
         ])
@@ -1294,23 +1339,46 @@ def qa_detail_panel(base_url: str, item: dict) -> str:
 
 async def logs_content(base_url: str, request: Request) -> str:
     q = request.query_params
+    source_state = str(q.get("source_state") or "all").strip()
+    if source_state not in {"all", "with_sources", "no_sources", "low_confidence"}:
+        source_state = "all"
+
+    def optional_int(name: str) -> int | None:
+        value = str(q.get(name) or "").strip()
+        if not value:
+            return None
+        try:
+            return int(value)
+        except ValueError:
+            return None
+
+    def optional_score(name: str) -> float | None:
+        value = str(q.get(name) or "").strip()
+        if not value:
+            return None
+        try:
+            score = float(value)
+        except ValueError:
+            return None
+        return score if 0.0 <= score <= 1.0 else None
+
     params = {
-        "limit": q.get("limit") or 100,
-        "days": q.get("days") or 30,
+        "limit": max(1, min(int_value(q.get("limit"), 100), 500)),
+        "days": max(1, min(int_value(q.get("days"), 30), 365)),
         "query": q.get("query") or None,
         "corpus_id": q.get("corpus_id") or None,
-        "source_state": q.get("source_state") or "all",
+        "source_state": source_state,
         "answer_source": q.get("answer_source") or None,
-        "qa_cache_id": q.get("qa_cache_id") or None,
+        "qa_cache_id": optional_int("qa_cache_id"),
         "session_id": q.get("session_id") or None,
-        "log_id": q.get("log_id") or None,
-        "min_score": q.get("min_score") or None,
-        "max_score": q.get("max_score") or None,
+        "log_id": optional_int("log_id"),
+        "min_score": optional_score("min_score"),
+        "max_score": optional_score("max_score"),
     }
     try:
         data = await api_get(base_url, "/admin/logs/search", params)
     except Exception as exc:
-        return error_panel("ログ探索を表示できません", exc)
+        return error_panel("ログ探索を表示できません", api_error_message(exc))
     logs = data.get("logs", [])
     rows = []
     for row in logs:
